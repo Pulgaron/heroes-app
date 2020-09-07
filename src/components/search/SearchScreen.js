@@ -5,9 +5,33 @@ import { useForm } from '../../hooks/useForm'
 import { useLocation } from 'react-router-dom'
 import { getHeroesByName } from '../../selectors/getHeroesByName'
 import { useMemo } from 'react'
+import {useFetch} from '../../hooks/useFetch'
 
 export const SearchScreen = ({history}) => {
     
+    const proxyurl = "https://cors-anywhere.herokuapp.com/";
+    
+    
+    const { loading, error, data} = useFetch(proxyurl+'https://swapi.dev/api/planets')
+
+    console.log(data)
+
+    var planets = []
+
+    if(data){
+
+        const {results} = data
+        planets = results
+    }
+
+    const getPlanetsByName = (name) =>{
+
+        if(name === '')
+            return []
+
+        return planets.filter(planet => planet.name.toLocaleLowerCase().includes(name))
+}
+
     const location = useLocation()
 
     const {q = ''} = queryString.parse(location.search)
@@ -21,8 +45,8 @@ export const SearchScreen = ({history}) => {
 
     const {searchText} = formValues
     
-    const heroesFiltered =  useMemo(() => getHeroesByName(q), [q])
-
+    //const heroesFiltered =  useMemo(() => getHeroesByName(q), [q])
+    const planetsFiltered =  useMemo(() => getPlanetsByName(q), [q])
     const handleSearch = e =>{
         e.preventDefault()
 
@@ -72,17 +96,14 @@ export const SearchScreen = ({history}) => {
                     }
 
 {
-                        (q !=='' && heroesFiltered.length === 0 ) && <div className="alert alert-danger">
+                        (q !=='' && planetsFiltered.length === 0 ) && <div className="alert alert-danger">
                         There is no hero with {q}
                         </div>
                     }
 
                     {
-                        heroesFiltered.map(hero => (
-                            <HeroCard 
-                                key={hero.id}
-                                {...hero}
-                            />
+                        planetsFiltered.map(planet => (
+                        <li>{planet.name}</li>
                         ))
                     }
                 </div>
